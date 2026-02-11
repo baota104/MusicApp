@@ -1,0 +1,85 @@
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt") // Plugin xử lý Annotation (cho Hilt/Room)
+    id("com.google.dagger.hilt.android") // Plugin Hilt
+    // id("androidx.navigation.safeargs.kotlin") // Tạm thời comment dòng này lại nếu chưa cấu hình classpath, ta sẽ thêm sau nếu cần truyền dữ liệu phức tạp
+}
+
+android {
+    namespace = "com.example.musicapp"
+    compileSdk = 34 // Bạn có thể để 34 hoặc 36 tùy bản Android Studio
+
+    defaultConfig {
+        applicationId = "com.example.musicapp"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+
+    // QUAN TRỌNG: Bật ViewBinding cho XML
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+}
+
+dependencies {
+    // --- Android Core & UI ---
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    // --- Architecture Components ---
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+
+    // --- Navigation ---
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+
+    // --- Networking (Retrofit) ---
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // --- Media3 (ExoPlayer) ---
+    implementation("androidx.media3:media3-exoplayer:1.2.1")
+    implementation("androidx.media3:media3-ui:1.2.1")
+    implementation("androidx.media3:media3-session:1.2.1")
+
+    // --- Hilt (Dependency Injection) ---
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-compiler:2.50") // Dùng kapt ở đây thay vì ksp để tránh lỗi cấu hình phức tạp
+
+    // --- Image Loading (Coil) ---
+    implementation("io.coil-kt:coil:2.6.0")
+
+    // --- Testing (Đã thay libs bằng chuỗi cứng để tránh lỗi) ---
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
