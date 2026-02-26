@@ -71,6 +71,8 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-session:1.2.1")
 
+    //glide
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
     // --- Hilt (Dependency Injection) ---
     implementation("com.google.dagger:hilt-android:2.50")
     kapt("com.google.dagger:hilt-compiler:2.50") // Dùng kapt ở đây thay vì ksp để tránh lỗi cấu hình phức tạp

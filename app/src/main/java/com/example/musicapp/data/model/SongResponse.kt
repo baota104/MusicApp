@@ -27,7 +27,7 @@ data class SongDto(
     val artist: ArtistDto,
 
     @SerializedName("album")
-    val album: AlbumDto
+    val album: AlbumDtoo
 )
 
 data class ArtistDto(
@@ -35,7 +35,7 @@ data class ArtistDto(
     val name: String
 )
 
-data class AlbumDto(
+data class AlbumDtoo(
     @SerializedName("cover_medium")
     val coverUrl: String,
 

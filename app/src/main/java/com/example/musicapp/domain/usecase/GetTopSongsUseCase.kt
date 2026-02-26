@@ -4,7 +4,7 @@ import com.example.musicapp.domain.model.Song
 import com.example.musicapp.domain.repository.SongRepository
 import javax.inject.Inject
 
-class GetTopSongsUseCase @Inject constructor(
+class GetTopSongsUseCase (
     private val songRepository: SongRepository
 ) {
     suspend operator fun invoke(): List<Song> {
