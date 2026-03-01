@@ -2,6 +2,7 @@ package com.example.musicapp.data.api
 
 import com.example.musicapp.data.model.AlbumDto
 import com.example.musicapp.data.model.DeezerListResponse
+import com.example.musicapp.data.model.GenreDto
 import com.example.musicapp.data.model.PlaylistDto
 import com.example.musicapp.data.model.RadioDto
 import com.example.musicapp.data.model.SongResponse
@@ -32,5 +33,15 @@ interface DeezerApiService {
         @Query("limit") limit: Int = 10
     ): DeezerListResponse<AlbumDto>
 
+    @GET("genre")
+    suspend fun getGenres(
+        @Query("limit") limit: Int = 10
+    ): DeezerListResponse<GenreDto>
 
+    @GET("search")
+    suspend fun searchSongs(
+        @Query("q") query: String
+    ): SongResponse
 }
+
+

@@ -1,6 +1,7 @@
 package com.example.musicapp.data.repository
 
 import com.example.musicapp.data.api.DeezerApiService
+import com.example.musicapp.domain.model.Genre
 import com.example.musicapp.domain.model.HomeData
 import com.example.musicapp.domain.model.HomeItem
 import com.example.musicapp.domain.model.ItemType
@@ -77,5 +78,54 @@ class SongRepositoryImpl (
                 HomeData(emptyList(), emptyList(), emptyList())
             }
         }
+    }
+    override suspend fun getGenres(): List<Genre> {
+        return try {
+            val response = deezerApiService.getGenres()
+
+            response.data?.mapNotNull { dto ->
+                // Lọc bỏ thể loại "All" (id = 0)
+                if (dto.id == 0L) return@mapNotNull null
+
+                Genre(
+                    id = dto.id,
+                    name = dto.name ?: "Unknown",
+                    pictureUrl = dto.pictureUrl ?: ""
+                )
+            } ?: emptyList()
+
+        } catch (e: Exception) {
+            android.util.Log.e("DEBUG_API", "Lỗi lấy Genres: ${e.message}")
+            emptyList()
+        }
+    }
+
+    override suspend fun searchSongs(query: String): List<Song> {
+        return try {
+            val response = deezerApiService.searchSongs(query)
+
+            // Map từ DTO sang Domain Model giống hệt getTopSong()
+            response.data.map { dto ->
+                Song(
+                    id = dto.id,
+                    title = dto.title,
+                    artistName = dto.artist.name,
+                    coverUrl = dto.album.coverUrl,
+                    sourceUrl = dto.previewUrl, // Link nhạc 30s
+                    duration = dto.duration
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("DEBUG_API", "Lỗi tìm kiếm bài hát: ${e.message}")
+            emptyList() // Lỗi thì trả về mảng rỗng để app không bị crash
+        }
+    }
+
+    override suspend fun isFavorite(songId: Long): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun toggleFavorite(song: Song): Boolean {
+        TODO("Not yet implemented")
     }
 }

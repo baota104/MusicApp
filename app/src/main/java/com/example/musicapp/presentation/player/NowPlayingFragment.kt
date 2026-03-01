@@ -1,11 +1,13 @@
 package com.example.musicapp.presentation.player
 
 import android.content.ComponentName
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -91,6 +93,13 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
                 stopProgressUpdate()
             }
         }
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            updateShuffleButton()
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            updateRepeatButton()
+        }
     }
 
     // 3. CẬP NHẬT GIAO DIỆN CHÍNH (Ảnh, Tên, Ca sĩ, Max Time)
@@ -127,6 +136,9 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
         if (player.isPlaying) {
             startProgressUpdate()
         }
+
+        updateShuffleButton()
+        updateRepeatButton()
     }
 
     private fun updatePlayPauseButton() {
@@ -166,27 +178,38 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
             val player = mediaController ?: return@setOnClickListener
             if (player.isPlaying) player.pause() else player.play()
         }
+        binding.btnShuffle.setOnClickListener {
+            val player = mediaController ?: return@setOnClickListener
+            player.shuffleModeEnabled = !player.shuffleModeEnabled
+        }
+
+        // NÚT LẶP LẠI (REPEAT)
+        binding.btnRepeat.setOnClickListener {
+            val player = mediaController ?: return@setOnClickListener
+            player.repeatMode = when (player.repeatMode) {
+                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                else -> Player.REPEAT_MODE_OFF
+            }
+        }
 
         binding.btnNext.setOnClickListener { mediaController?.seekToNext() }
         binding.btnPrevious.setOnClickListener { mediaController?.seekToPrevious() }
 
-        // Xử lý khi người dùng tua nhạc
+        // khong cho tua
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    // Cập nhật số thời gian ngay khi tay đang kéo
-                    binding.tvCurrentTime.text = formatTime(progress.toLong())
-                }
+
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                isUserSeeking = true // Báo là "Tôi đang kéo, đừng tự chạy nữa!"
+                android.widget.Toast.makeText(requireContext(), "Nhạc Preview 30s không hỗ trợ tua", android.widget.Toast.LENGTH_SHORT).show()
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isUserSeeking = false
-                val progress = seekBar?.progress ?: return
-                mediaController?.seekTo(progress.toLong()) // Tua ExoPlayer tới vị trí thả tay
+                val player = mediaController ?: return
+                seekBar?.progress = player.currentPosition.toInt()
             }
         })
     }
@@ -197,6 +220,39 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
         val minutes = totalSeconds / 60
         val seconds = totalSeconds % 60
         return String.format("%d:%02d", minutes, seconds)
+    }
+
+    private fun updateShuffleButton() {
+        val isShuffle = mediaController?.shuffleModeEnabled == true
+        val color = if (isShuffle) R.color.accent_cyan else R.color.text_secondary
+
+        binding.btnShuffle.imageTintList = ColorStateList.valueOf(
+            ContextCompat.getColor(requireContext(), color)
+        )
+    }
+
+    private fun updateRepeatButton() {
+        val repeatMode = mediaController?.repeatMode ?: Player.REPEAT_MODE_OFF
+        when (repeatMode) {
+            Player.REPEAT_MODE_OFF -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.imageTintList = ColorStateList.valueOf(
+                    ContextCompat.getColor(requireContext(), R.color.text_secondary)
+                )
+            }
+            Player.REPEAT_MODE_ALL -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.imageTintList = ColorStateList.valueOf(
+                    ContextCompat.getColor(requireContext(), R.color.accent_cyan)
+                )
+            }
+            Player.REPEAT_MODE_ONE -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat_one)
+                binding.btnRepeat.imageTintList = ColorStateList.valueOf(
+                    ContextCompat.getColor(requireContext(), R.color.accent_cyan)
+                )
+            }
+        }
     }
 
     override fun onDestroyView() {

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_dark"
-    android:paddingHorizontal="24dp"
+    android:paddingHorizontal="20dp"
     android:paddingTop="16dp">
 
     <androidx.constraintlayout.widget.Guideline
@@ -13,14 +13,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="24dp" />
+        app:layout_constraintGuide_begin="20dp" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineEnd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_end="24dp" />
+        app:layout_constraintGuide_end="20dp" />
 
     <TextView
         android:id="@+id/tvPlayingFrom"
@@ -100,6 +100,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_share"
+        android:layout_marginRight="5dp"
         app:tint="@color/text_secondary"
         app:layout_constraintBottom_toBottomOf="@id/tvArtistName"
         app:layout_constraintEnd_toStartOf="@+id/ivFavorite"
@@ -193,6 +194,8 @@
             android:src="@drawable/ic_repeat"
             app:tint="@color/text_secondary" />
 
+
+
         <androidx.constraintlayout.helper.widget.Flow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -201,7 +204,17 @@
             app:flow_verticalAlign="center"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout></androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/btnadd"
+        android:layout_width="48dp" android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:padding="12dp" android:src="@drawable/ic_add"
+        app:tint="@color/white"
+        app:layout_constraintEnd_toEndOf="@id/guidelineEnd" app:layout_constraintTop_toBottomOf="@id/controlsContainer" />
+</androidx.constraintlayout.widget.ConstraintLayout>

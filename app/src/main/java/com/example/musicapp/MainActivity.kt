@@ -25,11 +25,38 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (savedInstanceState == null) {
+            loadFragment(com.example.musicapp.presentation.home.HomeFragment())
+        }
 
-        // Khởi tạo kết nối tới Service khi mở app
         initializeController()
-
         setupClickListeners()
+        setUpbottom()
+    }
+    private fun loadFragment(fragment: androidx.fragment.app.Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.nav_host_fragment, fragment)
+            // .addToBackStack(null) // Bỏ  nếu muốn nút Back quay lại Fragment trước đó
+            .commit()
+    }
+    private fun setUpbottom(){
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    loadFragment(com.example.musicapp.presentation.home.HomeFragment())
+                    true
+                }
+                R.id.nav_explore -> {
+                    loadFragment(com.example.musicapp.presentation.search.SearchFragment())
+                    true
+                }
+                R.id.nav_library -> {
+                    loadFragment(com.example.musicapp.presentation.library.LibraryFragment())
+                    true
+                }
+                else -> false
+            }
+        }
     }
     private fun initializeController() {
         val sessionToken = SessionToken(this, ComponentName(this, MusicService::class.java))
@@ -55,7 +82,7 @@ class MainActivity : AppCompatActivity() {
         // Khi trạng thái Play/Pause thay đổi
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) {
-                binding.btnMiniPlayPause.setImageResource(R.drawable.ic_pause) // Cần có icon ic_pause
+                binding.btnMiniPlayPause.setImageResource(R.drawable.ic_pause)
             } else {
                 binding.btnMiniPlayPause.setImageResource(R.drawable.ic_play)
             }
