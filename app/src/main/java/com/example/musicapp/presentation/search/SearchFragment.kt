@@ -183,6 +183,7 @@ class SearchFragment : Fragment() {
         }, MoreExecutors.directExecutor())
 
     }
+
     private fun playMusic(selectedSong: Song) {
         val controller = mediaController ?: return
 

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-//@HiltViewModel // de hilt biet cach tao viewmodel nay, k can factory de truyen usecase vao
+
 class   HomeViewModel (
     private val getTopSongsUseCase: GetTopSongsUseCase,
     private val getHomeDataUseCase: GetHomeDataUseCase

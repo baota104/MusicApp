@@ -61,6 +61,7 @@
         android:layout_marginTop="32dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_launcher_background"
+
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
         app:layout_constraintStart_toStartOf="@id/guidelineStart"
@@ -113,6 +114,7 @@
         android:layout_marginStart="16dp"
         android:src="@drawable/ic_heart"
         app:tint="@color/accent_green"
+        android:backgroundTint="@color/accent_cyan"
         app:layout_constraintBottom_toBottomOf="@id/tvArtistName"
         app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
         app:layout_constraintTop_toTopOf="@id/tvSongTitle" />

@@ -1,6 +1,8 @@
 package com.example.musicapp.data.repository
 
 import com.example.musicapp.data.api.DeezerApiService
+import com.example.musicapp.data.local.dao.MusicDao
+import com.example.musicapp.data.local.entity.SongEntity
 import com.example.musicapp.domain.model.Genre
 import com.example.musicapp.domain.model.HomeData
 import com.example.musicapp.domain.model.HomeItem
@@ -10,10 +12,13 @@ import com.example.musicapp.domain.repository.SongRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class SongRepositoryImpl (
-    private val deezerApiService: DeezerApiService
+    private val deezerApiService: DeezerApiService,
+    private val musicDao: MusicDao
 ): SongRepository {
     override suspend fun getTopSong(): List<Song> {
         // api lay du lieu tho
@@ -122,10 +127,57 @@ class SongRepositoryImpl (
     }
 
     override suspend fun isFavorite(songId: Long): Boolean {
-        TODO("Not yet implemented")
+        return musicDao.isSongFavorite(songId)
     }
 
     override suspend fun toggleFavorite(song: Song): Boolean {
-        TODO("Not yet implemented")
+        val isFav = musicDao.isSongFavorite(song.id)
+
+        val entity = SongEntity(
+            id = song.id,
+            title = song.title,
+            artistName = song.artistName,
+            coverUrl = song.coverUrl,
+            sourceUrl = song.sourceUrl,
+            duration = song.duration
+        )
+
+        return if (isFav) {
+            musicDao.deleteFavoriteSong(entity)
+            false
+        } else {
+            musicDao.insertFavoriteSong(entity)
+            true
+        }
+    }
+    override fun getFavoriteSongs(): Flow<List<Song>> {
+        return musicDao.getAllFavoriteSongs().map { entities ->
+            entities.map { entity ->
+                    Song(
+                    id = entity.id,
+                    title = entity.title,
+                    artistName = entity.artistName,
+                    coverUrl = entity.coverUrl,
+                    sourceUrl = entity.sourceUrl,
+                    duration = entity.duration
+                )
+            }
+        }
+    }
+    override suspend fun getFreshSongById(songId: Long): Song? {
+        return try {
+            val dto = deezerApiService.getTrackById(songId)
+            Song(
+                id = dto.id,
+                title = dto.title,
+                artistName = dto.artist?.name ?: "Unknown",
+                coverUrl = dto.album?.coverUrl ?: "",
+                sourceUrl = dto.previewUrl ?: "",
+                duration = dto.duration
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("DEBUG_API", "Lỗi lấy bài hát mới: ${e.message}")
+            null
+        }
     }
 }

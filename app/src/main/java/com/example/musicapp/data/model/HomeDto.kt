@@ -30,3 +30,13 @@ data class GenreDto(
     @SerializedName("name") val name: String?, // Lưu ý: API này dùng "name" thay vì "title"
     @SerializedName("picture_medium") val pictureUrl: String?
 )
+
+
+data class SingleTrackDto(
+    @SerializedName("id") val id: Long,
+    @SerializedName("title") val title: String,
+    @SerializedName("preview") val previewUrl: String?, // Link nhạc tươi mới!
+    @SerializedName("album") val album: AlbumDto?,
+    @SerializedName("artist") val artist: ArtistDto?,
+    @SerializedName("duration") val duration: Int
+)

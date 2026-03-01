@@ -7,6 +7,5 @@ import androidx.room.PrimaryKey
 data class PlaylistEntity(
     @PrimaryKey(autoGenerate = true) val playlistId: Long = 0, // ID tự động tăng
     val name: String,
-    val numberOfSongs: Int,
     val createdAt: Long = System.currentTimeMillis()
 )

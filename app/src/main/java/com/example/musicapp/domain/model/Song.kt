@@ -5,6 +5,6 @@ data class Song(
     val title: String,
     val artistName: String,
     val coverUrl: String,
-    val sourceUrl: String, // Link nhạc mp3 (preview)
+    val sourceUrl: String,
     val duration: Int
 )

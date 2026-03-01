@@ -36,9 +36,11 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
 
-    // Quản lý tiến trình cập nhật SeekBar
+    //seek bar
     private var progressJob: Job? = null
     private var isUserSeeking = false // Kiểm tra xem người dùng có đang giữ tay kéo thanh SeekBar không
+
+    private lateinit var viewModel: NowPlayingViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -50,17 +52,35 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Ép BottomSheet mở toàn màn hình thay vì chỉ mở một nửa
         (dialog as? BottomSheetDialog)?.behavior?.apply {
             state = BottomSheetBehavior.STATE_EXPANDED
             skipCollapsed = true
         }
+        val appContainer = requireActivity().application as com.example.musicapp.MusicApplication
+        val repository = appContainer.songRepository
+        val checkFav = com.example.musicapp.domain.usecase.CheckFavoriteUseCase(repository)
+        val toggleFav = com.example.musicapp.domain.usecase.ToggleFavoriteUseCase(repository)
 
-        // Cài đặt nút thu nhỏ màn hình (Mũi tên xuống ở XML trước tôi có nhắc)
-        // Nếu dùng giao diện mới chưa có nút này, bạn có thể vuốt xuống để đóng cũng được.
+        val factory = NowPlayingViewModel.Factory(checkFav, toggleFav)
+        viewModel = androidx.lifecycle.ViewModelProvider(this, factory)[NowPlayingViewModel::class.java]
 
         initializeController()
         setupClickListeners()
+        setupObserve()
+    }
+
+    private fun setupObserve() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.isFavorite.collect { isFav ->
+                if (isFav) {
+                    binding.ivFavorite.setImageResource(R.drawable.ic_heart)
+                    binding.ivFavorite.setColorFilter(ContextCompat.getColor(requireContext(), R.color.accent_green))
+                } else {
+                    binding.ivFavorite.setImageResource(R.drawable.ic_heart)
+                    binding.ivFavorite.setColorFilter(ContextCompat.getColor(requireContext(), R.color.white))
+                }
+            }
+        }
     }
 
     private fun initializeController() {
@@ -77,14 +97,11 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
         }, MoreExecutors.directExecutor())
     }
 
-    // 2. LẮNG NGHE MỌI ĐỘNG TĨNH TỪ EXOPLAYER
     private val playerListener = object : Player.Listener {
-        // Khi chuyển bài mới
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             updateUI()
         }
 
-        // Khi người dùng bấm Play/Pause
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             updatePlayPauseButton()
             if (isPlaying) {
@@ -102,16 +119,13 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
         }
     }
 
-    // 3. CẬP NHẬT GIAO DIỆN CHÍNH (Ảnh, Tên, Ca sĩ, Max Time)
     private fun updateUI() {
         val player = mediaController ?: return
         val metadata = player.currentMediaItem?.mediaMetadata
 
-        // Đổ Text
         binding.tvSongTitle.text = metadata?.title ?: "Unknown"
         binding.tvArtistName.text = metadata?.artist ?: "Unknown"
 
-        // Load ảnh bằng Glide, thêm bo góc luôn nếu ở XML chưa bo
         metadata?.artworkUri?.let { uri ->
             Glide.with(this)
                 .load(uri)
@@ -119,44 +133,41 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
                 .into(binding.ivCoverArt)
         }
 
-        // Cập nhật trạng thái nút Play/Pause
         updatePlayPauseButton()
 
-        // Cài đặt độ dài thanh SeekBar (Tổng thời gian)
         val duration = player.duration
         if (duration != -1L) {
             binding.seekBar.max = duration.toInt()
             binding.tvTotalTime.text = formatTime(duration)
         }
 
-        // Cập nhật vị trí hiện tại
         updateProgress()
 
-        // Nếu nhạc đang chạy thì bắt đầu vòng lặp SeekBar
         if (player.isPlaying) {
             startProgressUpdate()
         }
 
         updateShuffleButton()
         updateRepeatButton()
+        val songId = player.currentMediaItem?.mediaId?.toLongOrNull() ?: 0L
+        viewModel.checkIsFavorite(songId)
     }
+
 
     private fun updatePlayPauseButton() {
         val isPlaying = mediaController?.isPlaying == true
-        // Đảm bảo bạn có 2 icon ic_pause và ic_play_arrow
         val iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow
         binding.btnPlayPause.setImageResource(iconRes)
     }
 
-    // 4. VÒNG LẶP CHẠY SEEKBAR (Dùng Coroutines thay vì Handler)
     private fun startProgressUpdate() {
         progressJob?.cancel()
         progressJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
-                if (!isUserSeeking) { // Chỉ tự chạy nếu người dùng không cầm vào SeekBar
+                if (!isUserSeeking) {
                     updateProgress()
                 }
-                delay(1000L) // Chờ 1 giây rồi lặp lại
+                delay(1000L)
             }
         }
     }
@@ -172,7 +183,6 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
         binding.tvCurrentTime.text = formatTime(currentPosition)
     }
 
-    // 5. BẮT SỰ KIỆN NÚT BẤM
     private fun setupClickListeners() {
         binding.btnPlayPause.setOnClickListener {
             val player = mediaController ?: return@setOnClickListener
@@ -183,7 +193,6 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
             player.shuffleModeEnabled = !player.shuffleModeEnabled
         }
 
-        // NÚT LẶP LẠI (REPEAT)
         binding.btnRepeat.setOnClickListener {
             val player = mediaController ?: return@setOnClickListener
             player.repeatMode = when (player.repeatMode) {
@@ -196,6 +205,21 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
 
         binding.btnNext.setOnClickListener { mediaController?.seekToNext() }
         binding.btnPrevious.setOnClickListener { mediaController?.seekToPrevious() }
+
+        binding.ivFavorite.setOnClickListener {
+            val player = mediaController ?: return@setOnClickListener
+            val currentItem = player.currentMediaItem ?: return@setOnClickListener
+
+            val song = com.example.musicapp.domain.model.Song(
+                id = currentItem.mediaId.toLongOrNull() ?: 0L,
+                title = currentItem.mediaMetadata.title.toString(),
+                artistName = currentItem.mediaMetadata.artist.toString(),
+                coverUrl = currentItem.mediaMetadata.artworkUri?.toString() ?: "",
+                sourceUrl = currentItem.localConfiguration?.uri?.toString() ?: "",
+                duration = (player.duration / 1000).toInt()
+            )
+            viewModel.toggleFavorite(song)
+        }
 
         // khong cho tua
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -257,7 +281,6 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Dọn dẹp cẩn thận để chống rỉ RAM
         stopProgressUpdate()
         mediaController?.removeListener(playerListener)
         controllerFuture?.let { MediaController.releaseFuture(it) }

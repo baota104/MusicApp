@@ -5,6 +5,7 @@ import com.example.musicapp.data.model.DeezerListResponse
 import com.example.musicapp.data.model.GenreDto
 import com.example.musicapp.data.model.PlaylistDto
 import com.example.musicapp.data.model.RadioDto
+import com.example.musicapp.data.model.SingleTrackDto
 import com.example.musicapp.data.model.SongResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -42,6 +43,9 @@ interface DeezerApiService {
     suspend fun searchSongs(
         @Query("q") query: String
     ): SongResponse
+
+    @GET("track/{id}")
+    suspend fun getTrackById(@Path("id") trackId: Long): SingleTrackDto
 }
 
 
