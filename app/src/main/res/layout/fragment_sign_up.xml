@@ -28,14 +28,15 @@
             android:id="@+id/ivLogo"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:src="@drawable/splash"
+            android:src="@drawable/ic_music"
             android:scaleType="fitCenter"
+            app:tint="@color/cyan_neon"
             app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintWidth_percent="0.25"
+            app:layout_constraintWidth_percent="0.35"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="32dp"/>
 
         <TextView
             android:id="@+id/tvTitle"

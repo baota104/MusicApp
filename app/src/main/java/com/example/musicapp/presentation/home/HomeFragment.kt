@@ -30,6 +30,7 @@ import com.example.musicapp.presentation.home.adapter.ContinueListeningAdapter
 import com.example.musicapp.service.MusicService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -63,6 +64,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun setupGreeting() {
         val userName = viewModel.getUserName()
         binding.tvUserName.text = userName
+
+        binding.ivSettings.setOnClickListener {
+            FirebaseAuth.getInstance().signOut()
+        }
     }
 
     private fun setupRecyclerView() {
