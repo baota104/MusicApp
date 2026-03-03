@@ -1,17 +1,12 @@
 package com.example.musicapp.service
 
-import android.content.Intent
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import com.example.musicapp.MusicApplication
 
-@AndroidEntryPoint // 1. Hilt: Bơm ExoPlayer vào đây
 class MusicService : MediaLibraryService() {
 
-    @Inject
     lateinit var player: ExoPlayer // Cái máy phát
 
     private var mediaLibrarySession: MediaLibrarySession? = null // Cái vô lăng
@@ -26,6 +21,8 @@ class MusicService : MediaLibraryService() {
     override fun onCreate() {
         super.onCreate()
 
+        val app = applicationContext as MusicApplication
+        player = app.exoPlayer
         // Kết nối Player vào Session
         mediaLibrarySession = MediaLibrarySession.Builder(this, player, callback)
             .build()
@@ -36,7 +33,7 @@ class MusicService : MediaLibraryService() {
         return mediaLibrarySession
     }
 
-    // 5. Dọn dẹp khi Service bị hủy (Rất quan trọng để không bị rò rỉ bộ nhớ)
+    // 5. Dọn dẹp khi Service bị hủy
     override fun onDestroy() {
         mediaLibrarySession?.run {
             player.release() // Giải phóng ExoPlayer

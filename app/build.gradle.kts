@@ -2,8 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt") // Plugin xử lý Annotation (cho Hilt/Room)
-    id("com.google.dagger.hilt.android") // Plugin Hilt
-    // id("androidx.navigation.safeargs.kotlin") // Tạm thời comment dòng này lại nếu chưa cấu hình classpath, ta sẽ thêm sau nếu cần truyền dữ liệu phức tạp
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -38,7 +37,6 @@ android {
     }
 
 
-    // QUAN TRỌNG: Bật ViewBinding cho XML
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -46,6 +44,13 @@ android {
 }
 
 dependencies {
+
+    // --- ROOM DATABASE ---
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
+
     // --- Android Core & UI ---
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -71,6 +76,8 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-session:1.2.1")
 
+    //glide
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
     // --- Hilt (Dependency Injection) ---
     implementation("com.google.dagger:hilt-android:2.50")
     kapt("com.google.dagger:hilt-compiler:2.50") // Dùng kapt ở đây thay vì ksp để tránh lỗi cấu hình phức tạp
@@ -82,4 +89,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    // firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    // giup firebase ket hop vơi coroutine
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 }
