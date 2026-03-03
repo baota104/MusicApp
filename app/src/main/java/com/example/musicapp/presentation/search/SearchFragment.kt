@@ -156,10 +156,10 @@ class SearchFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             searchViewModel.searchResults.collect { resource ->
                 when (resource) {
-                    is Resource.Loading -> { } // Có thể hiện xoay tròn
+                    is Resource.Loading -> { }
                     is Resource.Success -> {
                         resource.data?.let { songs ->
-                            songAdapter.submitList(songs) // Bơm bài hát vào Adapter!
+                            songAdapter.submitList(songs)
                             currentlist = songs
                         }
                     }

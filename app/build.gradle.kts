@@ -2,8 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt") // Plugin xử lý Annotation (cho Hilt/Room)
-    id("com.google.dagger.hilt.android") // Plugin Hilt
-    // id("androidx.navigation.safeargs.kotlin") // Tạm thời comment dòng này lại nếu chưa cấu hình classpath, ta sẽ thêm sau nếu cần truyền dữ liệu phức tạp
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -38,7 +37,6 @@ android {
     }
 
 
-    // QUAN TRỌNG: Bật ViewBinding cho XML
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -91,4 +89,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    // firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    // giup firebase ket hop vơi coroutine
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 }

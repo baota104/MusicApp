@@ -13,6 +13,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicapp.MusicApplication
+import com.example.musicapp.R
 import com.example.musicapp.common.Resource
 import com.example.musicapp.common.toMediaItem
 import com.example.musicapp.databinding.FragmentFavoriteBinding
@@ -141,8 +142,16 @@ class FavoriteFragment : Fragment() {
         controller.play()
     }
 
+    override fun onResume() {
+        super.onResume()
+        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
+        bottomNav?.visibility = View.GONE
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
+        bottomNav?.visibility = View.VISIBLE
         favoriteViewModel.clearCache()
         _binding = null
     }

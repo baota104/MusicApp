@@ -6,14 +6,19 @@ import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.musicapp.data.api.DeezerApiService
 import com.example.musicapp.data.local.AppDatabase
+import com.example.musicapp.data.repository.AuthRepositoryImpl
 import com.example.musicapp.data.repository.SongRepositoryImpl
+import com.example.musicapp.domain.repository.AuthRepository
 import com.example.musicapp.domain.repository.SongRepository
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.HiltAndroidApp
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MusicApplication : Application(){
     lateinit var songRepository: SongRepository
+    lateinit var authenticationRepository: AuthRepository
+
     override fun onCreate() {
         super.onCreate()
 
@@ -22,6 +27,9 @@ class MusicApplication : Application(){
         songRepository = SongRepositoryImpl(
             deezerApiService = apiService,
             musicDao = database.musicDao()
+        )
+        authenticationRepository = AuthRepositoryImpl(
+            auth = FirebaseAuth.getInstance()
         )
     }
     private val retrofit by lazy {

@@ -9,6 +9,7 @@ import com.example.musicapp.domain.model.Song
 import com.example.musicapp.domain.repository.SongRepository
 import com.example.musicapp.domain.usecase.GetHomeDataUseCase
 import com.example.musicapp.domain.usecase.GetTopSongsUseCase
+import com.example.musicapp.domain.usecase.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,7 @@ import javax.inject.Inject
 
 
 class HomeViewModel (
-    private val getTopSongsUseCase: GetTopSongsUseCase,
+    private val getUserUseCase: GetUserUseCase,
     private val getHomeDataUseCase: GetHomeDataUseCase
 ): ViewModel() {
 
@@ -35,39 +36,29 @@ class HomeViewModel (
             }
         }
     }
+    fun getUserName():String {
+            val user = getUserUseCase()
+            return if (user != null && !user.displayName.isNullOrBlank()) {
+                user.displayName!!
+            } else {
+                "Music Lover"
+            }
+    }
 
     init {
     loadHomeData()
     }
 
 
-//    private val _song = MutableStateFlow<Resource<List<Song>>>(Resource.Loading())
-//    val song : StateFlow<Resource<List<Song>>> = _song
-//
-//    private fun loadSong(){
-//        viewModelScope.launch {
-//            _song.value = Resource.Loading()
-//           try {
-//               val result = getTopSongsUseCase()
-//               _song.value = Resource.Success(result)
-//               android.util.Log.d("CHECK_API", "Số lượng bài hát lấy được: ${result.size}")
-//           }catch (e: Exception){
-//               android.util.Log.e("CHECK_API", "Gặp lỗi rồi: ${e.message}")
-//               e.printStackTrace()
-//               _song.value = Resource.Error(e.message ?: "Unknown error")
-//           }
-//
-//        }
-//    }
 
     class Factory(
-        private val getTopSongsUseCase: GetTopSongsUseCase,
+        private val getUserUseCase: GetUserUseCase,
         private val getHomeDataUseCase: GetHomeDataUseCase
     ): ViewModelProvider.Factory{
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
 
-            return HomeViewModel(getTopSongsUseCase,getHomeDataUseCase) as T
+            return HomeViewModel( getUserUseCase,getHomeDataUseCase) as T
         }
     }
 }

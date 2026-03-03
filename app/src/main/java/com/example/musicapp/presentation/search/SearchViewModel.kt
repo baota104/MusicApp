@@ -28,7 +28,6 @@ class SearchViewModel(
     }
 
     fun loadGenres() {
-        // Đưa try-catch vào BÊN TRONG launch
         viewModelScope.launch {
             _genres.value = Resource.Loading()
             try {

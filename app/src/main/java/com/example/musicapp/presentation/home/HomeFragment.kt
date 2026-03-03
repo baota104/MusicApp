@@ -22,6 +22,7 @@ import com.example.musicapp.databinding.FragmentHomeBinding
 import com.example.musicapp.domain.model.Song
 import com.example.musicapp.domain.usecase.GetHomeDataUseCase
 import com.example.musicapp.domain.usecase.GetTopSongsUseCase
+import com.example.musicapp.domain.usecase.GetUserUseCase
 import com.example.musicapp.presentation.adapter.RecentListeningAdapter
 import com.example.musicapp.presentation.adapter.SongAdapter
 import com.example.musicapp.presentation.adapter.TopMixsAdapter
@@ -50,21 +51,25 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val appContainer = requireActivity().application as MusicApplication
         val repository = appContainer.songRepository
         val getHomeDataUseCase = GetHomeDataUseCase(repository)
-        val getTopSongsUseCase = GetTopSongsUseCase(repository)
-        val factory = HomeViewModel.Factory(getTopSongsUseCase, getHomeDataUseCase)
+        val getUserUseCase: GetUserUseCase = GetUserUseCase(appContainer.authenticationRepository)
+        val factory = HomeViewModel.Factory(getUserUseCase, getHomeDataUseCase)
         viewModel = ViewModelProvider(this, factory).get(HomeViewModel::class.java)
 
+        setupGreeting()
         setupRecyclerView()
         observeData()
-    }
 
+    }
+    private fun setupGreeting() {
+        val userName = viewModel.getUserName()
+        binding.tvUserName.text = userName
+    }
 
     private fun setupRecyclerView() {
         continueAdapter = ContinueListeningAdapter { clickedItem ->
             Toast.makeText(requireContext(), "Clicked: ${clickedItem.title}", Toast.LENGTH_SHORT).show()
         }
 
-        // 2. Cài đặt cho RecyclerView (Lưới 2 cột, chiều dọc)
         binding.rvContinueListening.apply {
             adapter = continueAdapter
             layoutManager = GridLayoutManager(requireContext(), 2)
@@ -103,7 +108,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     is Resource.Success -> {
 
                        resource.data?.let { data ->
-                           android.util.Log.d("DEBUG_UI", "Số bài hát Continue: ${data.continueListening.size}")
+                            Log.d("DEBUG_UI", "Số bài hát Continue: ${data.continueListening.size}")
                            continueAdapter.submitList(data.continueListening)
                            topMixsAdapter.submitList(data.topMixes)
                            recentListeningAdapter.submitList(data.playlists)

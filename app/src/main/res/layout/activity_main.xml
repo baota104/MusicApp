@@ -21,8 +21,6 @@
         android:id="@+id/miniPlayerCard"
         android:layout_width="0dp"
         android:layout_height="60dp"
-
-
         android:visibility="gone"
         tools:visibility="visible"
 

@@ -8,6 +8,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.Glide
 import com.example.musicapp.databinding.ActivityMainBinding
 import com.example.musicapp.presentation.player.NowPlayingFragment
@@ -25,13 +27,30 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        if (savedInstanceState == null) {
-            loadFragment(com.example.musicapp.presentation.home.HomeFragment())
-        }
-
+        setUpSplash()
         initializeController()
         setupClickListeners()
         setUpbottom()
+    }
+    private fun setUpSplash(){
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+        binding.bottomNavigation.setupWithNavController(navController)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+
+                R.id.splashFragment,
+                R.id.loginFragment,
+                R.id.signUpFragment -> {
+                    binding.bottomNavigation.visibility = View.GONE
+                    binding.miniPlayerCard.visibility = View.GONE // Giấu luôn Mini Player
+                }
+                else -> {
+                    binding.bottomNavigation.visibility = View.VISIBLE
+                    // Lưu ý: miniPlayerCard chỉ hiện khi có nhạc đang phát, phần đó ta xử lý sau
+                }
+            }
+        }
     }
     private fun loadFragment(fragment: androidx.fragment.app.Fragment) {
         supportFragmentManager.beginTransaction()
@@ -64,22 +83,16 @@ class MainActivity : AppCompatActivity() {
 
         mediaControllerFuture?.addListener({
             mediaController = mediaControllerFuture?.get()
-            // Khi kết nối thành công, bắt đầu lắng nghe trạng thái nhạc
             mediaController?.addListener(playerListener)
-
-            // Cập nhật UI ngay lập tức nhỡ đâu nhạc đang chạy sẵn từ trước
             updateMiniPlayerUI()
         }, MoreExecutors.directExecutor())
     }
 
-    // Cái tai nghe lén xem ExoPlayer đang làm gì
     private val playerListener = object : Player.Listener {
-        // Khi chuyển bài hát mới
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             updateMiniPlayerUI()
         }
 
-        // Khi trạng thái Play/Pause thay đổi
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) {
                 binding.btnMiniPlayPause.setImageResource(R.drawable.ic_pause)
@@ -91,28 +104,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateMiniPlayerUI() {
         val player = mediaController ?: return
-
-        // Nếu không có bài hát nào, ẩn Mini Player đi
         if (player.currentMediaItem == null) {
             binding.miniPlayerCard.visibility = View.GONE
             return
         }
 
-        // Nếu có nhạc, hiện nó lên
         binding.miniPlayerCard.visibility = View.VISIBLE
 
         val metadata = player.currentMediaItem?.mediaMetadata
         binding.tvMiniTitle.text = metadata?.title ?: "Unknown Song"
         binding.tvMiniArtist.text = metadata?.artist ?: "Unknown Artist"
 
-        // Load ảnh bằng Glide
         metadata?.artworkUri?.let { uri ->
             Glide.with(this)
                 .load(uri)
                 .into(binding.ivMiniCover)
         }
 
-        // Cập nhật trạng thái nút Play/Pause
         if (player.isPlaying) {
             binding.btnMiniPlayPause.setImageResource(R.drawable.ic_pause)
         } else {
