@@ -7,5 +7,7 @@ import androidx.room.PrimaryKey
 data class PlaylistEntity(
     @PrimaryKey(autoGenerate = true) val playlistId: Long = 0, // ID tự động tăng
     val name: String,
-    val createdAt: Long = System.currentTimeMillis()
+    val imageUrl: String? = null,
+    val createdAt: Long = System.currentTimeMillis(),
+    val isSystem: Boolean = false
 )

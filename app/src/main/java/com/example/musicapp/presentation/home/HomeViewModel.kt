@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-class   HomeViewModel (
+class HomeViewModel (
     private val getTopSongsUseCase: GetTopSongsUseCase,
     private val getHomeDataUseCase: GetHomeDataUseCase
 ): ViewModel() {

@@ -2,30 +2,29 @@ package com.example.musicapp.data.repository
 
 import com.example.musicapp.data.api.DeezerApiService
 import com.example.musicapp.data.local.dao.MusicDao
+import com.example.musicapp.data.local.entity.PlaylistEntity
+import com.example.musicapp.data.local.entity.PlaylistSongCrossRef
+import com.example.musicapp.data.local.entity.PlaylistWithSongs
 import com.example.musicapp.data.local.entity.SongEntity
 import com.example.musicapp.domain.model.Genre
 import com.example.musicapp.domain.model.HomeData
 import com.example.musicapp.domain.model.HomeItem
 import com.example.musicapp.domain.model.ItemType
+import com.example.musicapp.domain.model.Playlist
+import com.example.musicapp.domain.model.PlaylistDetail
 import com.example.musicapp.domain.model.Song
 import com.example.musicapp.domain.repository.SongRepository
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 class SongRepositoryImpl (
     private val deezerApiService: DeezerApiService,
     private val musicDao: MusicDao
 ): SongRepository {
     override suspend fun getTopSong(): List<Song> {
-        // api lay du lieu tho
         val response = deezerApiService.getTopSongs()
-
-        // chuyen du dto sang domain model
-        // Tại sao phải chuyển? Để nếu API đổi tên trường, ta chỉ cần sửa ở đây, UI không bị ảnh hưởng.
         return response.data.map { dto ->
             Song(
                 id = dto.id,
@@ -127,40 +126,46 @@ class SongRepositoryImpl (
     }
 
     override suspend fun isFavorite(songId: Long): Boolean {
-        return musicDao.isSongFavorite(songId)
+        val favPlaylistId = getOrCreateFavoritePlaylistId()
+        return musicDao.isSongInPlaylist(favPlaylistId, songId)
     }
 
-    override suspend fun toggleFavorite(song: Song): Boolean {
-        val isFav = musicDao.isSongFavorite(song.id)
+    override suspend fun toggleFavorite(song: Song,isFavorite: Boolean): Boolean {
+       try {
+            val favPlaylistId = getOrCreateFavoritePlaylistId()
+            if (isFavorite) {
+                val songEntity = SongEntity(
+                    id = song.id, title = song.title, artistName = song.artistName,
+                    coverUrl = song.coverUrl, sourceUrl = song.sourceUrl, duration = song.duration
+                )
+                musicDao.insertSongToCache(songEntity)
 
-        val entity = SongEntity(
-            id = song.id,
-            title = song.title,
-            artistName = song.artistName,
-            coverUrl = song.coverUrl,
-            sourceUrl = song.sourceUrl,
-            duration = song.duration
-        )
+                val crossRef = PlaylistSongCrossRef(favPlaylistId, song.id)
+                musicDao.insertSongToPlaylist(crossRef)
+                return true
+            } else {
+                musicDao.deleteSongFromPlaylist(favPlaylistId, song.id)
+                musicDao.clearOrphanSongs()
+                return false
+            }
 
-        return if (isFav) {
-            musicDao.deleteFavoriteSong(entity)
-            false
-        } else {
-            musicDao.insertFavoriteSong(entity)
-            true
         }
+       catch (e: Exception){
+           android.util.Log.e("DEBUG_API", "Lỗi thêm/xóa bài hát yêu thích: ${e.message}")
+           return false
+       }
     }
     override fun getFavoriteSongs(): Flow<List<Song>> {
-        return musicDao.getAllFavoriteSongs().map { entities ->
-            entities.map { entity ->
-                    Song(
-                    id = entity.id,
-                    title = entity.title,
-                    artistName = entity.artistName,
-                    coverUrl = entity.coverUrl,
-                    sourceUrl = entity.sourceUrl,
-                    duration = entity.duration
-                )
+        return kotlinx.coroutines.flow.flow {
+            val favId = getOrCreateFavoritePlaylistId()
+            musicDao.getPlaylistWithSongs(favId).collect { entityData ->
+                val songs = entityData.songs.map { songEntity ->
+                 Song(
+                        id = songEntity.id, title = songEntity.title, artistName = songEntity.artistName,
+                        coverUrl = songEntity.coverUrl, sourceUrl = songEntity.sourceUrl, duration = songEntity.duration
+                    )
+                }
+                emit(songs)
             }
         }
     }
@@ -180,4 +185,79 @@ class SongRepositoryImpl (
             null
         }
     }
+
+    override suspend fun addPlaylist(name: String) {
+        val entity = PlaylistEntity(name = name)
+        musicDao.insertPlaylist(entity)
+    }
+
+    override fun getAllPlaylists(): Flow<List<Playlist>> {
+        return musicDao.getAllPlaylists().map { entities ->
+            entities.map {
+                Playlist(
+                    id = it.playlistId,
+                    imageUrl = it.imageUrl,
+                    name = it.name
+                )
+            }
+        }
+    }
+
+    override suspend fun addSongToPlaylist(playlistId: Long, song: Song) {
+        val isincache = musicDao.isSongInCache(song.id)
+        if(!isincache){
+            val songEntity = SongEntity(
+                id = song.id,
+                title = song.title,
+                artistName = song.artistName,
+                coverUrl = song.coverUrl,
+                sourceUrl = song.sourceUrl,
+                duration = song.duration
+            )
+            musicDao.insertSongToCache(songEntity)
+        }
+        val crossRef = PlaylistSongCrossRef(playlistId = playlistId, songId = song.id)
+        musicDao.insertSongToPlaylist(crossRef)
+
+    }
+
+    override suspend fun updatePlaylistImage(playlistId: Long, imageUrl: String) {
+        musicDao.updatePlaylistImage(playlistId, imageUrl)
+    }
+
+    override fun getPlaylistWithSongs(playlistId: Long): Flow<PlaylistDetail> {
+        return musicDao.getPlaylistWithSongs(playlistId).map { entityData ->
+            PlaylistDetail(
+                playlist = Playlist(
+                    id = entityData.playlist.playlistId,
+                    name = entityData.playlist.name,
+                    imageUrl = entityData.playlist.imageUrl
+                ),
+                songs = entityData.songs.map { songEntity ->
+                    Song(
+                        id = songEntity.id,
+                        title = songEntity.title,
+                        artistName = songEntity.artistName,
+                        coverUrl = songEntity.coverUrl,
+                        sourceUrl = songEntity.sourceUrl,
+                        duration = songEntity.duration
+                    )
+                }
+            )
+        }
+    }
+    private suspend fun getOrCreateFavoritePlaylistId(): Long {
+        val existingId = musicDao.getSystemFavoritePlaylistId()
+        if (existingId != null) return existingId
+        val systemPlaylist = PlaylistEntity(
+            name = "Your Favorite Songs",
+            isSystem = true
+        )
+        return musicDao.insertPlaylist(systemPlaylist)
+    }
+    override suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long) {
+        musicDao.deleteSongFromPlaylist(playlistId, songId)
+        musicDao.clearOrphanSongs()
+    }
+
 }

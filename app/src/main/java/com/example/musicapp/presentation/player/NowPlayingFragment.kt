@@ -17,6 +17,12 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentNowPlayingDetailsBinding
+import com.example.musicapp.domain.usecase.AddPlaylistUseCase
+import com.example.musicapp.domain.usecase.AddSongToPlaylistUseCase
+import com.example.musicapp.domain.usecase.CheckFavoriteUseCase
+import com.example.musicapp.domain.usecase.GetPlaylistsUseCase
+import com.example.musicapp.domain.usecase.ToggleFavoriteUseCase
+import com.example.musicapp.presentation.adapter.PlaylistAdapter
 import com.example.musicapp.service.MusicService
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -58,10 +64,12 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
         }
         val appContainer = requireActivity().application as com.example.musicapp.MusicApplication
         val repository = appContainer.songRepository
-        val checkFav = com.example.musicapp.domain.usecase.CheckFavoriteUseCase(repository)
-        val toggleFav = com.example.musicapp.domain.usecase.ToggleFavoriteUseCase(repository)
-
-        val factory = NowPlayingViewModel.Factory(checkFav, toggleFav)
+        val checkFav = CheckFavoriteUseCase(repository)
+        val toggleFav = ToggleFavoriteUseCase(repository)
+        val addSongToPlaylist = AddSongToPlaylistUseCase(repository)
+        val getPlaylists = GetPlaylistsUseCase(repository)
+        val addPlaylist = AddPlaylistUseCase(repository)
+        val factory = NowPlayingViewModel.Factory(checkFav, toggleFav,addSongToPlaylist, getPlaylists, addPlaylist)
         viewModel = androidx.lifecycle.ViewModelProvider(this, factory)[NowPlayingViewModel::class.java]
 
         initializeController()
@@ -184,6 +192,9 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupClickListeners() {
+        binding.btnadd.setOnClickListener {
+            showAddToPlaylistDialog()
+        }
         binding.btnPlayPause.setOnClickListener {
             val player = mediaController ?: return@setOnClickListener
             if (player.isPlaying) player.pause() else player.play()
@@ -238,7 +249,6 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
         })
     }
 
-    // Tiện ích: Biến Milliseconds thành định dạng Phút:Giây (VD: 2:45)
     private fun formatTime(ms: Long): String {
         val totalSeconds = ms / 1000
         val minutes = totalSeconds / 60
@@ -278,6 +288,72 @@ class NowPlayingFragment : BottomSheetDialogFragment() {
             }
         }
     }
+
+    private fun showAddToPlaylistDialog() {
+        val player = mediaController ?: return
+        val currentItem = player.currentMediaItem ?: return
+        val currentSong = com.example.musicapp.domain.model.Song(
+            id = currentItem.mediaId.toLongOrNull() ?: 0L,
+            title = currentItem.mediaMetadata.title?.toString() ?: "Unknown",
+            artistName = currentItem.mediaMetadata.artist?.toString() ?: "Unknown",
+            coverUrl = currentItem.mediaMetadata.artworkUri?.toString() ?: "",
+            sourceUrl = currentItem.localConfiguration?.uri?.toString() ?: "",
+            // Ép kiểu duration cẩn thận, đề phòng trường hợp player chưa tải xong thời lượng
+            duration = if (player.duration > 0) (player.duration / 1000).toInt() else 0
+        )
+
+
+        val dialog = BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(R.layout.dialog_add_to_playlist, null)
+        dialog.setContentView(view)
+
+        val btnCreateNew = view.findViewById<View>(R.id.btnCreateNewPlaylist)
+        val rvPlaylists = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvPlaylistsDialog)
+
+        btnCreateNew.setOnClickListener {
+            dialog.dismiss()
+            showCreatePlaylistInputDialog()
+        }
+        val adapter = PlaylistAdapter { clickedPlaylist ->
+            viewModel.addSongToPlaylist(clickedPlaylist.id, currentSong)
+            android.widget.Toast.makeText(requireContext(), "Added to ${clickedPlaylist.name}", android.widget.Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        rvPlaylists.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+        rvPlaylists.adapter = adapter
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.playlists.collect { list ->
+                adapter.submitList(list)
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun showCreatePlaylistInputDialog() {
+        val editText = android.widget.EditText(requireContext()).apply {
+            hint = "Enter your playlist name"
+            setSingleLine()
+            setPadding(50,50,50,50)
+        }
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Create new Playlist")
+            .setView(editText)
+            .setPositiveButton("Create") { dialog, _ ->
+                val playlistName = editText.text.toString().trim()
+                if (playlistName.isNotEmpty()) {
+                    viewModel.createPlaylist(playlistName) // Lưu vào DB
+                    android.widget.Toast.makeText(requireContext(), "Created: $playlistName", android.widget.Toast.LENGTH_SHORT).show()
+                    showAddToPlaylistDialog()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

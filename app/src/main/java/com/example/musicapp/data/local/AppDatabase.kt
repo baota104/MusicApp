@@ -6,12 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.musicapp.data.local.dao.MusicDao
 import com.example.musicapp.data.local.entity.PlaylistEntity
+import com.example.musicapp.data.local.entity.PlaylistSongCrossRef
 import com.example.musicapp.data.local.entity.SongEntity
 
-// Khai báo các bảng có trong Database
 @Database(
-    entities = [SongEntity::class, PlaylistEntity::class],
-    version = 1, // Nếu sau này sửa bảng, phải tăng số này lên
+    entities = [
+        SongEntity::class,
+        PlaylistEntity::class,
+        PlaylistSongCrossRef::class
+    ],
+    version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

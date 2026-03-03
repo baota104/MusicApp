@@ -3,7 +3,7 @@ package com.example.musicapp.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "favorite_songs")
+@Entity(tableName = "songs")
 data class SongEntity(
     @PrimaryKey val id: Long, // Lấy ID của Deezer làm khóa chính luôn
     val title: String,
