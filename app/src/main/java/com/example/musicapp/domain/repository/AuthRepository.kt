@@ -8,5 +8,6 @@ interface AuthRepository {
     suspend fun signIn(email: String, password: String): Resource<FirebaseUser>
     fun isUserLoggedIn(): Boolean
     fun getCurrentUser(): FirebaseUser?
+    fun signOut()
 }
 

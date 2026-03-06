@@ -27,56 +27,33 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setUpSplash()
+        setUpNavigation()
         initializeController()
         setupClickListeners()
-        setUpbottom()
+
     }
-    private fun setUpSplash(){
+    private fun setUpNavigation() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
+
+
         binding.bottomNavigation.setupWithNavController(navController)
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-
                 R.id.splashFragment,
                 R.id.loginFragment,
                 R.id.signUpFragment -> {
                     binding.bottomNavigation.visibility = View.GONE
-                    binding.miniPlayerCard.visibility = View.GONE // Giấu luôn Mini Player
+                    binding.miniPlayerCard.visibility = View.GONE
                 }
                 else -> {
                     binding.bottomNavigation.visibility = View.VISIBLE
-                    // Lưu ý: miniPlayerCard chỉ hiện khi có nhạc đang phát, phần đó ta xử lý sau
                 }
             }
         }
     }
-    private fun loadFragment(fragment: androidx.fragment.app.Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.nav_host_fragment, fragment)
-            // .addToBackStack(null) // Bỏ  nếu muốn nút Back quay lại Fragment trước đó
-            .commit()
-    }
-    private fun setUpbottom(){
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    loadFragment(com.example.musicapp.presentation.home.HomeFragment())
-                    true
-                }
-                R.id.nav_explore -> {
-                    loadFragment(com.example.musicapp.presentation.search.SearchFragment())
-                    true
-                }
-                R.id.nav_library -> {
-                    loadFragment(com.example.musicapp.presentation.library.LibraryFragment())
-                    true
-                }
-                else -> false
-            }
-        }
-    }
+//
     private fun initializeController() {
         val sessionToken = SessionToken(this, ComponentName(this, MusicService::class.java))
         mediaControllerFuture = MediaController.Builder(this, sessionToken).buildAsync()

@@ -17,7 +17,6 @@ import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicapp.MusicApplication
-import com.example.musicapp.R
 import com.example.musicapp.common.Resource
 import com.example.musicapp.common.toMediaItem
 import com.example.musicapp.databinding.FragmentSearchBinding
