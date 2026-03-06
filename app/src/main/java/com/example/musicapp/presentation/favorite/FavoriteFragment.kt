@@ -142,16 +142,16 @@ class FavoriteFragment : Fragment() {
         controller.play()
     }
 
-    override fun onResume() {
-        super.onResume()
-        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
-        bottomNav?.visibility = View.GONE
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
+//        bottomNav?.visibility = View.GONE
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
-        bottomNav?.visibility = View.VISIBLE
+//        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
+//        bottomNav?.visibility = View.VISIBLE
         favoriteViewModel.clearCache()
         _binding = null
     }

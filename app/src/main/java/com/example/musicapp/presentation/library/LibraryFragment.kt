@@ -56,10 +56,7 @@ class LibraryFragment : Fragment() {
         }
 
         binding.btnFavorite.setOnClickListener {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.nav_host_fragment, com.example.musicapp.presentation.favorite.FavoriteFragment())
-                .addToBackStack(null) // LỆNH NÀY CỰC KỲ QUAN TRỌNG
-                .commit()
+            findNavController().navigate(R.id.action_libraryFragment_to_favoriteFragment)
         }
     }
     private fun showCreatePlaylistDialog() {
@@ -91,20 +88,22 @@ class LibraryFragment : Fragment() {
     private fun setupRecyclerView() {
         playlistAdapter = PlaylistAdapter {
                 clickedPlaylist->
-            val bundle = android.os.Bundle().apply {
-                putLong("PLAYLIST_ID", clickedPlaylist.id)
-                putString("PLAYLIST_NAME", clickedPlaylist.name)
-                putString("PLAYLIST_IMAGE_URL", clickedPlaylist.imageUrl)
-            }
-
-            val detailFragment = PlayListFragment().apply {
-                arguments = bundle
-            }
-
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.nav_host_fragment, detailFragment)
-                .addToBackStack(null)
-                .commit()
+//            val bundle = android.os.Bundle().apply {
+//                putLong("PLAYLIST_ID", clickedPlaylist.id)
+//                putString("PLAYLIST_NAME", clickedPlaylist.name)
+//                putString("PLAYLIST_IMAGE_URL", clickedPlaylist.imageUrl)
+//            }
+//
+//            val detailFragment = PlayListFragment().apply {
+//                arguments = bundle
+//            }
+//
+//            requireActivity().supportFragmentManager.beginTransaction()
+//                .replace(R.id.nav_host_fragment, detailFragment)
+//                .addToBackStack(null)
+//                .commit()
+            val action = LibraryFragmentDirections.actionLibraryFragmentToPlayListFragment(clickedPlaylist.id,clickedPlaylist.name,clickedPlaylist.imageUrl.toString())
+            findNavController().navigate(action)
         }
         binding.rvLibrary.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)

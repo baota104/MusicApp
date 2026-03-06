@@ -23,6 +23,7 @@ class SearchViewModel(
     private val _searchResults = MutableStateFlow<Resource<List<Song>>>(Resource.Success(emptyList()))
     val searchResults: StateFlow<Resource<List<Song>>> = _searchResults
     private var searchJob: Job? = null
+
     init {
     loadGenres()
     }

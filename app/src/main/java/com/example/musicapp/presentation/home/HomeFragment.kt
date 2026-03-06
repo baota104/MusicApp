@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +28,7 @@ import com.example.musicapp.presentation.adapter.RecentListeningAdapter
 import com.example.musicapp.presentation.adapter.SongAdapter
 import com.example.musicapp.presentation.adapter.TopMixsAdapter
 import com.example.musicapp.presentation.home.adapter.ContinueListeningAdapter
+import com.example.musicapp.presentation.profile.ProfileFragment
 import com.example.musicapp.service.MusicService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -64,10 +66,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun setupGreeting() {
         val userName = viewModel.getUserName()
         binding.tvUserName.text = userName
-
-        binding.ivSettings.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-        }
     }
 
     private fun setupRecyclerView() {
@@ -99,7 +97,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             adapter = recentListeningAdapter
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
-
+        binding.ivAvatar.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_profileFragment)
+        }
 
     }
 

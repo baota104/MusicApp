@@ -13,6 +13,8 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -41,12 +43,13 @@ class PlayListFragment : Fragment() {
     private lateinit var PlayListViewModel: PlaylistDetailViewModel
     private lateinit var songAdapter: SongAdapter
     private var currentList: List<Song> = emptyList()
-    private var playlistimage: String = ""
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
-    private var playlistId: Long = -1L
+    private var playlistId: Long = 0L
     private var playlistName: String = ""
+    private var playlistImageUrl: String = ""
 
+    private val args: PlayListFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,13 +61,17 @@ class PlayListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            playlistId = it.getLong("PLAYLIST_ID", -1L)
-            playlistName = it.getString("PLAYLIST_NAME", "Playlist")
-            playlistimage = it.getString("PLAYLIST_IMAGE_URL", "")
-
-        }
+//        arguments?.let {
+//            playlistId = it.getLong("PLAYLIST_ID", -1L)
+//            playlistName = it.getString("PLAYLIST_NAME", "Playlist")
+//            playlistimage = it.getString("PLAYLIST_IMAGE_URL", "")
+//
+//        }
+        playlistId = args.playlistId
+        playlistName = args.playlistName
+        playlistImageUrl = args.playlistImageUrl
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -88,7 +95,7 @@ class PlayListFragment : Fragment() {
     private fun setUpUi() {
         binding.tvPlaylistName.text = playlistName
         Glide.with(binding.root.context)
-            .load(playlistimage)
+            .load(playlistImageUrl)
             .placeholder(R.drawable.ic_launcher_background)
             .error(R.drawable.ic_launcher_background)
             .into(binding.coverplaylist)
@@ -261,17 +268,16 @@ class PlayListFragment : Fragment() {
         controller.play()
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Tìm thanh menu ở MainActivity và giấu nó đi (View.GONE sẽ làm nó biến mất hoàn toàn và giải phóng không gian)
-        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation) // NHỚ ĐỔI ID NÀY CHO KHỚP VỚI BÊN MAIN CỦA BẠN
-        bottomNav?.visibility = View.GONE
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
+//        bottomNav?.visibility = View.GONE
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
-        bottomNav?.visibility = View.VISIBLE
+//        val bottomNav = requireActivity().findViewById<View>(R.id.bottom_navigation)
+//        bottomNav?.visibility = View.VISIBLE
         PlayListViewModel.clearCache()
         _binding = null
     }
